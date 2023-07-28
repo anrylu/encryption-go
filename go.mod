@@ -1,4 +1,4 @@
-module qif-gitlab.dev-myqnapcloud.com/q2/encryption
+module github.com/anrylu/encryption-go
 
 go 1.18
 

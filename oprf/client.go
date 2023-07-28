@@ -9,12 +9,12 @@ import (
 
 var suiteToUse oprf.Suite = oprf.SuiteRistretto255
 
-// BlindMessage used at client side to blind the input message
-func BlindMessage(msg string) (*oprf.FinalizeData, string, error) {
+// Blind used at client side to blind the input message
+func Blind(input string) (*oprf.FinalizeData, string, error) {
 	client := oprf.NewClient(suiteToUse)
 
     // blind message
-    finData, evalReq, err := client.Blind([][]byte{[]byte(msg)})
+    finData, evalReq, err := client.Blind([][]byte{[]byte(input)})
     if err != nil {
         return nil, "", err
     }
@@ -31,8 +31,8 @@ func BlindMessage(msg string) (*oprf.FinalizeData, string, error) {
     return finData, evalReqEncoded, nil
 }
 
-// FinalizeMessage used at client side to finalize the input message
-func FinalizeMessage(finData *oprf.FinalizeData, evaluatedElementBytesEncoded string) (string, error) {
+// Finalize used at client side to finalize the input message
+func Finalize(finData *oprf.FinalizeData, evaluatedElementBytesEncoded string) (string, error) {
     client := oprf.NewClient(suiteToUse)
 
     // decode evaluatedElementBytesEncoded

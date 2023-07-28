@@ -38,7 +38,7 @@ func decodeKey(keyEncoded string) (*oprf.PrivateKey, error) {
 }
 
 // EvaluateMessage used at server side to evaluate the message and return the base64 encoded result
-func EvaluateMessage(keyEncoded, evalReqEncoded string) (string, error) {
+func BlindEvaluate(keyEncoded, evalReqEncoded string) (string, error) {
 	// get private key
 	private, err := decodeKey(keyEncoded)
 
