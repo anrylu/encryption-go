@@ -19,9 +19,13 @@ func GeneratreKeyPair() (string, string, error) {
 	}
 
 	// convert private key
+	privateKeyBuffer, err :=x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return "", "", err
+	}
 	privateKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBuffer,
 	})
 
 	// generate public key
@@ -32,7 +36,7 @@ func GeneratreKeyPair() (string, string, error) {
 
 	// convert public key
 	publicKeyPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "RSA PUBLIC KEY",
+		Type:  "PUBLIC KEY",
 		Bytes: publicKeyBytes,
 	})
 
@@ -50,7 +54,7 @@ func convertPublicKey(publicKeyEncoded string) (*rsa.PublicKey, error) {
 
 	// Parse PEM block
 	block, _ := pem.Decode(decodedKey)
-	if block == nil || block.Type != "RSA PUBLIC KEY" {
+	if block == nil || block.Type != "PUBLIC KEY" {
 		return nil, err
 	}
 
@@ -78,15 +82,16 @@ func convertPrivateKey(privateKeyEncoded string) (*rsa.PrivateKey, error) {
 
 	// Parse PEM block
 	block, _ := pem.Decode(decodedKey)
-	if block == nil || block.Type != "RSA PRIVATE KEY" {
+	if block == nil || block.Type != "PRIVATE KEY" {
 		return nil, err
 	}
 
 	// Parse RSA pp=rivate key
-	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	privateKeyBuffer, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
+	privateKey := privateKeyBuffer.(*rsa.PrivateKey)
 	
 	return privateKey, nil
 }
