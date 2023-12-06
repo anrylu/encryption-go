@@ -84,6 +84,9 @@ func Verify(publicKeyEncoded, msg, signatureEncoded string) (bool, error) {
 
 	// decode signature
 	signature, err := base64.StdEncoding.DecodeString(signatureEncoded)
+	if err != nil {
+		return false, err
+	}
 
 	// verify signature
 	isValid := ed25519.Verify(publicKey, []byte(msg), signature)
