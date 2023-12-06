@@ -2,7 +2,9 @@ package eddsa
 
 import (
 	"crypto/ed25519"
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 )
 
 // GeneratreKeyPair generate eddsa key pair
@@ -11,26 +13,52 @@ func GeneratreKeyPair() (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	return base64.StdEncoding.EncodeToString(privateKey), base64.StdEncoding.EncodeToString(publicKey), nil
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	if err != nil {
+		return "", "", err
+	}
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
+	if err != nil {
+		return "", "", err
+	}
+	publicKeyBlock := &pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: publicKeyBytes,
+	}
+	privateKeyBlock := &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: privateKeyBytes,
+	}
+	return base64.StdEncoding.EncodeToString(pem.EncodeToMemory(privateKeyBlock)),
+		base64.StdEncoding.EncodeToString(pem.EncodeToMemory(publicKeyBlock)),
+		nil
 }
 
 func convertPublicKey(publicKeyEncoded string) (ed25519.PublicKey, error) {
-	publicKeyBytes, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
+	keyPEM, err := base64.StdEncoding.DecodeString(publicKeyEncoded)
 	if err != nil {
 		return nil, err
 	}
-
-	return ed25519.PublicKey(publicKeyBytes), nil
+	block, _ := pem.Decode(keyPEM)
+	keyBytes, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return keyBytes.(ed25519.PublicKey), nil
 }
 
 func convertPrivateKey(privateKeyEncoded string) (ed25519.PrivateKey, error) {
-	privateKeyBytes, err := base64.StdEncoding.DecodeString(privateKeyEncoded)
+	keyPEM, err := base64.StdEncoding.DecodeString(privateKeyEncoded)
 	if err != nil {
 		return nil, err
 	}
-	return ed25519.PrivateKey(privateKeyBytes), nil
+	block, _ := pem.Decode(keyPEM)
+	keyBytes, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+	if err != nil {
+		return nil, err
+	}
+	return keyBytes.(ed25519.PrivateKey), nil
 }
-
 
 // Sign sign the input message to generate a signature
 func Sign(privateKeyEncoded, msg string) (string, error) {
